@@ -1,6 +1,7 @@
+using Photon.Pun;
 using UnityEngine;
 
-public class getFruit : MonoBehaviour
+public class getFruit : MonoBehaviourPunCallbacks
 {
     public int points;
     public static int score = 0;
@@ -23,6 +24,13 @@ public class getFruit : MonoBehaviour
 
     private void DestroyFruit()
     {
-        Destroy(gameObject);
+        GetComponent<PhotonView>().RPC("DestroyObject", RpcTarget.All, gameObject);
+    }
+
+    [PunRPC]
+    private void DestroyObject(GameObject obj)
+    {
+        Destroy(obj);
+
     }
 }

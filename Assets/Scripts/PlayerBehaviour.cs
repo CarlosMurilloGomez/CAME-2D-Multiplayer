@@ -1,38 +1,58 @@
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerBehaviour : MonoBehaviour
+public class PlayerBehaviour : MonoBehaviourPunCallbacks
 {
     public float speed, jumpForce;
     private Rigidbody2D rb2D;
     private Animator animator;
     void Start()
     {
-        rb2D = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
+        if (GetComponent<PhotonView>().IsMine)
+        {
+            rb2D = GetComponent<Rigidbody2D>();
+            animator = GetComponent<Animator>();
+            Camera.main.transform.SetParent(transform);
+            Camera.main.transform.position = transform.position + Vector3.up + (transform.forward * -10);
+        }
+
     }
 
     void Update()
     {
-        //CORRER
-        rb2D.linearVelocity = (transform.right * speed * Input.GetAxis("Horizontal")) + (transform.up * rb2D.linearVelocityY);
-
-        if (rb2D.linearVelocityX > 0.1f)
+        if (GetComponent<PhotonView>().IsMine)
         {
-            GetComponent<SpriteRenderer>().flipX = false;
-        }
-        else if (rb2D.linearVelocityX < -0.1f)
-        {
-            GetComponent <SpriteRenderer>().flipX = true;
+            //CORRER
+            rb2D.linearVelocity = (transform.right * speed * Input.GetAxis("Horizontal")) + (transform.up * rb2D.linearVelocityY);
+
+            if (rb2D.linearVelocityX > 0.1f)
+            {
+                GetComponent<PhotonView>().RPC("RotateSprite", RpcTarget.All, false);
+            }
+            else if (rb2D.linearVelocityX < -0.1f)
+            {
+                GetComponent<PhotonView>().RPC("RotateSprite", RpcTarget.All, true);
+            }
+
+            //SALTAR
+            if (Input.GetButtonDown("Jump") && rb2D.linearVelocityY < 0.2 && rb2D.linearVelocityY > -0.2)
+            {
+                rb2D.AddForce(transform.up * jumpForce);
+            }
+            //ANIMACIONES
+            animator.SetFloat("velocityX", Mathf.Abs(rb2D.linearVelocityX));
+            animator.SetFloat("velocityY", rb2D.linearVelocityY);
+
         }
 
-        //SALTAR
-        if (Input.GetButtonDown("Jump") && animator.GetFloat("VelocityY") == 0)
-        {
-            rb2D.AddForce(transform.up * jumpForce);
-        }
 
-        //ANIMACIONES
-        animator.SetFloat("velocityX", Mathf.Abs(rb2D.linearVelocityX));
-        animator.SetFloat("velocityY", rb2D.linearVelocityY);
+
     }
+    [PunRPC]
+    public void RotateSprite(bool rotate)
+    {
+        GetComponent<SpriteRenderer>().flipX = rotate;
+    }
+
+   
 }

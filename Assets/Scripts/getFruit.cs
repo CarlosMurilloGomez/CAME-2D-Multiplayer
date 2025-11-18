@@ -22,15 +22,15 @@ public class getFruit : MonoBehaviourPunCallbacks
         }
     }
 
-    private void DestroyFruit()
-    {
-        GetComponent<PhotonView>().RPC("DestroyObject", RpcTarget.All, gameObject);
-    }
+    //private void DestroyFruit()
+    //{
+    //    GetComponent<PhotonView>().RPC("DestroyObject", RpcTarget.All, gameObject);
+    //}
 
     [PunRPC]
-    private void DestroyObject(GameObject obj)
+    private void DestroyObject()
     {
-        Destroy(obj);
+        Destroy(gameObject);
 
     }
 }

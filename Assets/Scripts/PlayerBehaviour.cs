@@ -8,10 +8,12 @@ public class PlayerBehaviour : MonoBehaviourPunCallbacks
     private Animator animator;
     void Start()
     {
-        if (GetComponent<PhotonView>().IsMine)
+        rb2D = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
+
+        if (photonView.IsMine)
         {
-            rb2D = GetComponent<Rigidbody2D>();
-            animator = GetComponent<Animator>();
+            
             Camera.main.transform.SetParent(transform);
             Camera.main.transform.position = transform.position + Vector3.up + (transform.forward * -10);
         }
@@ -20,34 +22,41 @@ public class PlayerBehaviour : MonoBehaviourPunCallbacks
 
     void Update()
     {
-        if (GetComponent<PhotonView>().IsMine)
+        if (photonView.IsMine)
         {
             //CORRER
             rb2D.linearVelocity = (transform.right * speed * Input.GetAxis("Horizontal")) + (transform.up * rb2D.linearVelocityY);
 
             if (rb2D.linearVelocityX > 0.1f)
             {
-                GetComponent<PhotonView>().RPC("RotateSprite", RpcTarget.All, false);
+                photonView.RPC("RotateSprite", RpcTarget.All, false);
             }
             else if (rb2D.linearVelocityX < -0.1f)
             {
-                GetComponent<PhotonView>().RPC("RotateSprite", RpcTarget.All, true);
+                photonView.RPC("RotateSprite", RpcTarget.All, true);
             }
 
             //SALTAR
-            if (Input.GetButtonDown("Jump") && rb2D.linearVelocityY < 0.2 && rb2D.linearVelocityY > -0.2)
+            if (Input.GetButtonDown("Jump") && Mathf.Abs(rb2D.linearVelocityY) < 0.2)
             {
                 rb2D.AddForce(transform.up * jumpForce);
             }
             //ANIMACIONES
-            animator.SetFloat("velocityX", Mathf.Abs(rb2D.linearVelocityX));
-            animator.SetFloat("velocityY", rb2D.linearVelocityY);
+            float vx = Mathf.Abs(rb2D.linearVelocityX);
+            float vy = rb2D.linearVelocityY;
+            
+
+
+            animator.SetFloat("velocityX", vx);
+            animator.SetFloat("velocityY", vy);
 
         }
 
 
 
     }
+
+
     [PunRPC]
     public void RotateSprite(bool rotate)
     {

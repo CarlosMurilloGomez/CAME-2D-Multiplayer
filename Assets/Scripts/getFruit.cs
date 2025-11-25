@@ -4,28 +4,47 @@ using UnityEngine;
 public class getFruit : MonoBehaviourPunCallbacks
 {
     public int points;
-    public static int score = 0;
+    private GameObject gameManager;
     private Animator animator;
 
     private void Start()
     {
+        gameManager = GameObject.FindGameObjectWithTag("GameController");
         animator = GetComponent<Animator>();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player") || collision.CompareTag("Player2"))
+        PhotonView pv = collision.gameObject.GetComponent<PhotonView>();
+        if (pv != null)
         {
-            score += points;
-            print("+" + points);
-            animator.SetTrigger("getFruit");
+            Debug.Log("PhotonView encontrado. ViewID: " + pv.ViewID);
+            Debug.Log("PhotonView encontrado. Owner: " + pv.Owner.ActorNumber);
+            Debug.Log("PhotonView encontrado. Mine: " + pv.IsMine);
         }
+        
+        if (pv.IsMine)
+        {
+            Debug.Log("Es Mio");
+            Debug.Log("El gameController: " + gameManager.name);
+            gameManager.GetComponent<GameManager>().addPoints(points, pv.Owner.ActorNumber);
+            photonView.RPC("DestroyAnimation", RpcTarget.All);
+
+        }
+
+    }
+   
+    [PunRPC]
+    public void DestroyAnimation()
+    {
+        animator.SetTrigger("getFruit");
+
     }
 
-    //private void DestroyFruit()
-    //{
-    //    GetComponent<PhotonView>().RPC("DestroyObject", RpcTarget.All, gameObject);
-    //}
+    public void DestroyFruit()
+    {
+        photonView.RPC("DestroyObject", RpcTarget.All);
+    }
 
     [PunRPC]
     private void DestroyObject()

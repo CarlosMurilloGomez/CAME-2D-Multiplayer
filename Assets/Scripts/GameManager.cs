@@ -1,7 +1,10 @@
 using UnityEngine;
 using Photon.Pun;
+using TMPro;
 public class GameManager : MonoBehaviourPunCallbacks
 {
+    public TextMeshProUGUI scoreP1;
+    public TextMeshProUGUI scoreP2;
     void Start()
     {
         if (PhotonNetwork.IsMasterClient)
@@ -17,5 +20,24 @@ public class GameManager : MonoBehaviourPunCallbacks
     void Update()
     {
         
+    }
+
+    public void addPoints(int points, int player)
+    {
+        PhotonView pv = gameObject.GetComponent<PhotonView>();
+        pv.RPC("addPointsRPC", RpcTarget.All, player, points);
+
+    }
+
+    [PunRPC]
+    public void addPointsRPC(int player, int points)
+    {
+        if (player == 1)
+        {
+            scoreP1.text = (int.Parse(scoreP1.text) + points).ToString();
+        }else
+        {
+            scoreP2.text = (int.Parse(scoreP2.text) + points).ToString();
+        }
     }
 }
